@@ -1,0 +1,123 @@
+import PIL.Image
+
+
+def OtsuTH(gs_img):
+    nbpxl = gs_img.size[0] * gs_img.size[1]
+    histo = _Histogramme(gs_img)
+    proba = [pix / nbpxl for pix in histo]
+    moy = _Moy(proba)
+    print("Moy : ", moy)
+
+
+    var_ic_th = (0, 0)
+    for seuil in range(1, 255):
+        # Données nécéssaires au calcul de la variance inter classe
+        P1, P2 = _ProbClass(proba, seuil)
+        P12 = P1 * P2
+        if P12 == 0:
+            P12 = 1
+
+        moy1 = _Sum(proba[:seuil+1]) / P1
+        moy2 = _Sum(proba[seuil+1:]) / P2
+        print("moy1 : {}  moy2 : {}".format(moy1, moy2))
+
+        # Variance intra classe
+        var1 = _Var(proba, moy1, P1, 0, seuil)
+        var2 = _Var(proba, moy2, P2, seuil, 255)
+
+
+        # Variance inter classe
+
+
+    return var_ic_th[1]
+
+
+def _Var(probaTab, moyClasse, probClasse, min, max):
+    sum = 0
+    for i in range(min, max+1):
+        sum += (i - moyClasse) ** 2 * probaTab[i] / probClasse
+    return sum
+
+
+def _ProbClass(proba, T):
+    """Compute the probability to be in the class [histo[0], histo[T]] and [histo[T+1]-histo[255]]"""
+    prob_low = 0
+    for i in range(T+1):
+        prob_low += proba[i]
+    return prob_low, 1 - prob_low
+
+
+def _Sum(histo):
+    """Compute mean value [0,255] of the histo"""
+    sum = 0
+    for i in range(len(histo)):
+        sum += (i * histo[i])
+    return sum
+
+
+def _Moy(histo):
+    sum = 0
+    divide = 0
+    for i in range(len(histo)):
+        sum += histo[i] * i
+        divide += histo[i]
+    if divide == 0:
+        return 0
+    else:
+        return sum / divide
+
+
+def _VarInter(prob, T):
+    return
+
+
+
+def _Histogramme(img):
+    histo = [0 for i in range(256)]
+    for i in range(img.size[0]):
+        for j in range(img.size[1]):
+            histo[img.getpixel((i, j))] += 1
+    return histo
+
+
+def BinaryFromTH(gs_img, threshold):
+    binary_img = PIL.Image.new("1", gs_img.size)
+    pixels = binary_img.load()
+    for i in range(gs_img.size[0]):
+        for j in range(gs_img.size[1]):
+            if gs_img.getpixel((i, j)) <= threshold :
+                pixels[i, j] = 0
+            else:
+                pixels[i, j] = 1
+    return binary_img
+
+
+
+
+"""def OtsuTH(gs_img):
+    histo = _Histogramme(gs_img)
+    # proba = [pix / (gs_img.size[0] * gs_img.size[1]) for pix in histo]
+
+    var_ic_th = (0, 0)
+    for seuil in range(1, 255):
+        # Donnés nécéssaires au calcul de la variance inter classe
+        low_class_prob = _ProbClass(histo, 0, seuil)
+        high_class_prob = _ProbClass(histo, seuil+1, 256)
+        high_x_low = high_class_prob * low_class_prob
+        if high_x_low == 0:
+            high_x_low = 1
+
+        moy = _MoyImg(histo)
+        moy_low = _MoyImg(histo[:seuil])
+        moy_high = _MoyImg(histo[seuil+1:-1])
+
+        # Variance inter classe
+        # var_ic = (moy * low_class_prob - moy_low) ** 2 / high_x_low
+        var_ic = (moy_low * low_class_prob - moy_high * high_class_prob) ** 2 / high_x_low
+        # print(seuil, " : ", var_ic)
+        if var_ic > var_ic_th[0]:
+            var_ic_th = (var_ic, seuil)
+
+    return var_ic_th[1]"""
+
+
