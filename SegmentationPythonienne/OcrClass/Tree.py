@@ -1,3 +1,6 @@
+#adrien.lorge
+#source : epita Dm1_S3_Pre-Tree
+
 class Tree:
     def __init__(self, key=None, children=None):
         self.key = key
@@ -12,7 +15,7 @@ class Tree:
 
 
 
-"""array tests"""
+#array of tests
 
 
 imageBW =   [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
