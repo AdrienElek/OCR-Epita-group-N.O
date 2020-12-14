@@ -6,8 +6,9 @@
 #ifndef SANITIZE_C_LOADER_H
 #define SANITIZE_C_LOADER_H
 #include "bmp_struct.h"
+#include "stdlib.h"
 
-void print_info(BMP);
+//void print_info(BMP);
 void CopyArray(unsigned char **src, unsigned char **dst, size_t length);
 void CopyBMP(BMP* src, BMP* dst);
 void CopyBMPWithEmptyPixels(BMP* src, BMP* dst);

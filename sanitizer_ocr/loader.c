@@ -39,6 +39,7 @@ Uint Hex2I(unsigned char **arr, int offset, int bytes){
     return sum;
 }
 
+
 // Fill the <arr> array from a BMP field <field>
 // at <offset> position to <offset> + <bytes> - 1 position
 void I2Hex(unsigned char **arr, Uint field, int offset, int bytes){
@@ -65,18 +66,23 @@ void CopyBMPWithEmptyPixels(BMP *src, BMP *dst){
     dst->imageHeader.header_size = src->imageHeader.header_size;
     dst->imageHeader.width = src->imageHeader.width;
     dst->imageHeader.height = src->imageHeader.height;
-    dst->imageHeader.planes = src->imageHeader.planes;
+    //dst->imageHeader.planes = src->imageHeader.planes;
     dst->imageHeader.bits_pp = src->imageHeader.bits_pp;
-    dst->imageHeader.compress = src->imageHeader.compress;
+    //dst->imageHeader.compress = src->imageHeader.compress;
     dst->imageHeader.img_size = src->imageHeader.img_size;
-    dst->imageHeader.res_h = src->imageHeader.res_h;
+    /*dst->imageHeader.res_h = src->imageHeader.res_h;
     dst->imageHeader.res_v = src->imageHeader.res_v;
     dst->imageHeader.pal_colors_num = src->imageHeader.pal_colors_num;
-    dst->imageHeader.important_colors = src->imageHeader.important_colors;
+    dst->imageHeader.important_colors = src->imageHeader.important_colors;*/
+
 
     dst->palette = src->palette;
 
-    unsigned char *new_pixels = malloc(src->imageHeader.img_size * sizeof(unsigned char));
+    unsigned char *completeHeader = malloc(src->imageHeader.header_size * sizeof(unsigned char));
+    CopyArray(&src->imageHeader.completeArray, &completeHeader, src->imageHeader.header_size);
+    dst->imageHeader.completeArray = completeHeader;
+
+    unsigned char *new_pixels = calloc(src->imageHeader.img_size, sizeof(unsigned char));
     dst->pixels = new_pixels;
 }
 
@@ -92,20 +98,27 @@ void CopyBMP(BMP *src, BMP *dst){
     dst->imageHeader.header_size = src->imageHeader.header_size;
     dst->imageHeader.width = src->imageHeader.width;
     dst->imageHeader.height = src->imageHeader.height;
-    dst->imageHeader.planes = src->imageHeader.planes;
+    //dst->imageHeader.planes = src->imageHeader.planes;
     dst->imageHeader.bits_pp = src->imageHeader.bits_pp;
-    dst->imageHeader.compress = src->imageHeader.compress;
+    //dst->imageHeader.compress = src->imageHeader.compress;
     dst->imageHeader.img_size = src->imageHeader.img_size;
-    dst->imageHeader.res_h = src->imageHeader.res_h;
+    /*dst->imageHeader.res_h = src->imageHeader.res_h;
     dst->imageHeader.res_v = src->imageHeader.res_v;
     dst->imageHeader.pal_colors_num = src->imageHeader.pal_colors_num;
-    dst->imageHeader.important_colors = src->imageHeader.important_colors;
+    dst->imageHeader.important_colors = src->imageHeader.important_colors;*/
+
 
     dst->palette = src->palette;
+
+
+    unsigned char *completeHeader = malloc(src->imageHeader.header_size * sizeof(unsigned char));
+    CopyArray(&src->imageHeader.completeArray, &completeHeader, src->imageHeader.header_size);
+    dst->imageHeader.completeArray = completeHeader;
 
     unsigned char *new_pixels = malloc(src->imageHeader.img_size * sizeof(unsigned char));
     CopyArray(&(src->pixels), &new_pixels, src->imageHeader.img_size);
     dst->pixels = new_pixels;
+
 
 }
 
@@ -121,26 +134,19 @@ void BuildFIleArray(BMP *bmp, unsigned char **arr){
     I2Hex(arr, 0, 6, 4);           // Reserved field
     I2Hex(arr, bmp->fileHeader.arr_offset, 10, 4);
 
-    //Image Header
-    I2Hex(arr, bmp->imageHeader.header_size, 14, 4);
-    I2Hex(arr, bmp->imageHeader.width, 18, 4);
-    I2Hex(arr, bmp->imageHeader.height, 22, 4);
-    I2Hex(arr, bmp->imageHeader.planes, 26, 2);
-    I2Hex(arr, bmp->imageHeader.bits_pp, 28, 2);
-    I2Hex(arr, bmp->imageHeader.compress, 30, 4);
-    I2Hex(arr, bmp->imageHeader.img_size, 34, 4);
-    I2Hex(arr, bmp->imageHeader.res_h, 38, 4);
-    I2Hex(arr, bmp->imageHeader.res_v, 42, 4);
-    I2Hex(arr, bmp->imageHeader.pal_colors_num, 46, 4);
-    I2Hex(arr, bmp->imageHeader.important_colors, 50, 4);
 
-    int offset = 54;
-    // Manage Palette
-    // if palette then offset += palette.length
+
+    //Image Header
+    unsigned char *array = *arr;
+    for (int i = 0; i < bmp->imageHeader.header_size; i++) {
+        *(array+14+i) = *(bmp->imageHeader.completeArray+i);
+    }
+
+
 
     // Pixel array
-    for (int i = 0; i < bmp->imageHeader.img_size;i++){
-        (*arr)[offset + i] = bmp->pixels[i];
+    for (int i = 0; i < bmp->imageHeader.img_size; i++){
+        (*arr)[bmp->fileHeader.arr_offset + i] = bmp->pixels[i];
     }
 }
 
@@ -172,7 +178,7 @@ void SetPixel(BMP* bmp, int x, int y, PIX pix){
 
 
 
-void print_info(BMP bmp){
+/*void print_info(BMP bmp){
     printf("ID OS : %d\n", bmp.fileHeader.id);
     printf("file s: %d\n", bmp.fileHeader.file_size);
     printf("offset: %d\n", bmp.fileHeader.arr_offset);
@@ -180,15 +186,15 @@ void print_info(BMP bmp){
     printf("hi len: %d\n", bmp.imageHeader.header_size);
     printf("width : %d\n", bmp.imageHeader.width);
     printf("height: %d\n", bmp.imageHeader.height);
-    printf("plans : %d\n", bmp.imageHeader.planes);
+    //printf("plans : %d\n", bmp.imageHeader.planes);
     printf("bitspp: %d\n", bmp.imageHeader.bits_pp);
-    printf("comp m: %d\n", bmp.imageHeader.compress);
+    //printf("comp m: %d\n", bmp.imageHeader.compress);
     printf("arrlen: %d\n", bmp.imageHeader.img_size);
-    printf("h res : %d\n", bmp.imageHeader.res_h);
-    printf("v res : %d\n", bmp.imageHeader.res_v);
-    printf("n col : %d\n", bmp.imageHeader.pal_colors_num);
-    printf("hl col: %d\n", bmp.imageHeader.important_colors);
-}
+    //printf("h res : %d\n", bmp.imageHeader.res_h);
+    //printf("v res : %d\n", bmp.imageHeader.res_v);
+    //printf("n col : %d\n", bmp.imageHeader.pal_colors_num);
+    //printf("hl col: %d\n", bmp.imageHeader.important_colors);
+}*/
 
 
 
@@ -218,7 +224,7 @@ void GetBMP(char* path, BMP* dst)
     // détermine la taille du fichier BMP
     fseek(fp, 0, SEEK_END);
     size_t fileSize = ftell(fp);
-    printf("Fsize: %ld\n",fileSize);
+    //printf("Fsize: %ld\n",fileSize);
 
     fseek(fp, 0, SEEK_SET);
 
@@ -237,18 +243,25 @@ void GetBMP(char* path, BMP* dst)
     dst->fileHeader.file_size = Hex2I(&BMPArray, 2, 4);
     dst->fileHeader.arr_offset = Hex2I(&BMPArray, 10, 4);
 
+
+
     // Image Header
     dst->imageHeader.header_size = Hex2I(&BMPArray, 14, 4);
     dst->imageHeader.width = Hex2I(&BMPArray, 18, 4);
     dst->imageHeader.height = Hex2I(&BMPArray, 22, 4);
-    dst->imageHeader.planes = Hex2I(&BMPArray, 26, 2);
     dst->imageHeader.bits_pp = Hex2I(&BMPArray, 28, 2);
-    dst->imageHeader.compress = Hex2I(&BMPArray, 30, 4);
     dst->imageHeader.img_size = Hex2I(&BMPArray, 34, 4);
-    dst->imageHeader.res_h = Hex2I(&BMPArray, 38, 4);
-    dst->imageHeader.res_v = Hex2I(&BMPArray, 42, 4);
-    dst->imageHeader.pal_colors_num = Hex2I(&BMPArray, 46, 4);
-    dst->imageHeader.important_colors = Hex2I(&BMPArray, 50, 4);
+    if (dst->imageHeader.bits_pp == 32)
+        printf("GetBMP: File is 32 bits per pixel.\nThis can cause problems while using the Straightening function.\n");
+
+    // Complete image header
+    unsigned char *completeArray = malloc(dst->imageHeader.header_size * sizeof(unsigned char));
+    for (int i = 0; i < dst->imageHeader.header_size; i++) {
+        *(completeArray+i) = BMPArray[14+i];
+    }
+    dst->imageHeader.completeArray = completeArray;
+
+
 
     // Table of color management
     int offset = 54;
@@ -267,8 +280,3 @@ void GetBMP(char* path, BMP* dst)
     fclose(fp);
     free(BMPArray);
 }
-
-
-
-
-

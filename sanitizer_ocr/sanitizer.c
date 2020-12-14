@@ -200,7 +200,6 @@ unsigned char GetOtsuTH(BMP* gs_bmp){
 
     Uint *histo = calloc(256, sizeof(Uint));
     Histogram(gs_bmp, &histo);
-    printf("Histo successfully built\n");
 
 
     double *proba = malloc(256 * sizeof(double));
@@ -212,7 +211,6 @@ unsigned char GetOtsuTH(BMP* gs_bmp){
     double varIC = 0;
     unsigned char varIC_index = 0;
 
-    printf("Set up complete\n");
     double cur_VarIC;
     for (unsigned char TH = 1; TH < 255; TH++) {
         cur_VarIC = VarInter(&proba, TH);
@@ -265,26 +263,28 @@ void Binary(BMP* gs_bmp, BMP* bn_bmp){
 
 // BANANA ROTAT E
 void Rotate(BMP* bmp, BMP* rotate_bmp, int angle){
-    int midX = bmp->imageHeader.width/2;
-    int midY = bmp->imageHeader.height/2;
+    int midX = (int)(bmp->imageHeader.width/2);
+    int midY = (int)(bmp->imageHeader.height/2);
     double cosA = cos(angle*M_PI/180);
     double sinA = sin(angle*M_PI/180);
 
 
-    int c = 0;
+
     PIX pix;
     for (int i = 0; i < bmp->imageHeader.width; i++) {
         for (int j = 0; j < bmp->imageHeader.height; j++) {
 
-            int x = (int)((i-midX)*cosA + (j-midY)*sinA + midX);
-            int y = (int)(-(i-midX)*sinA + (j-midY)*cosA + midY);
+            int x = (int)((i-midX)*cosA + (j-midY)*sinA) + midX;
+            int y = (int)(-(i-midX)*sinA + (j-midY)*cosA) + midY;
+
             if (x>=0 && x<bmp->imageHeader.width && y>=0 && y<bmp->imageHeader.height){
-                c+=1;
                 pix = GetPixel(bmp, x, y);
                 SetPixel(rotate_bmp, i, j, pix);
             }
         }
     }
+
+
 
 }
 
@@ -298,11 +298,11 @@ const float EdgedDetectMatrix[3][3] = {
 };
 
 
-const float SharpenMatrix[3][3] = {
+/*const float SharpenMatrix[3][3] = {
         {0, -1, 0},
         {-1, 5, -1},
         {0, -1, 0},
-};
+};*/
 
 
 
@@ -362,14 +362,14 @@ void HoughTrans(BMP* bmp, Uint **accumulator, int Rmax){
     int x, y;
     int r;
     PIX pix;
-    for(size_t i = 0; i < bmp->imageHeader.width; i++){
-        for (size_t j = 0; j < bmp->imageHeader.height; j++) {
+    for(int i = 0; i < bmp->imageHeader.width; i++){
+        for (int j = 0; j < bmp->imageHeader.height; j++) {
 
             pix = GetPixel(bmp, i, j);
             if (pix.r > 200 && pix.g > 200 && pix.b > 200){
                 for (int theta = 1; theta <= 180; theta++) {
-                    x = i - bmp->imageHeader.width / 2;
-                    y = j - bmp->imageHeader.height / 2;
+                    x = i - (int)(bmp->imageHeader.width / 2);
+                    y = j - (int)(bmp->imageHeader.height / 2);
                     r = (int) (x * cos(theta*M_PI/180) + y * sin(theta*M_PI/180));
                     *(accu + (r + Rmax) + (theta - 1) * 2 * Rmax) += 1;
                 }
@@ -381,9 +381,53 @@ void HoughTrans(BMP* bmp, Uint **accumulator, int Rmax){
 
 
 
+int GetAngleFromAccu(BMP* bmp, Uint **accumulator, int Rmax){
+    Uint *accu = *accumulator;
 
 
-void Straighten(BMP* bmp,BMP* st_bmp){
+    int thetaMax = 0;
+    int max = 0;
+    int threshold = 3/5;
+    if (bmp->imageHeader.width < bmp->imageHeader.height)
+        threshold *= bmp->imageHeader.height;
+    else
+        threshold *= bmp->imageHeader.width;
+
+
+    // Loop through all accumulator value to get max angle
+    for (int i = 0; i < Rmax*2; i++) {
+        for (int j = 0; j < 180; j++) {
+            if(*(accu + i + j * Rmax * 2) > threshold){
+
+                //printf("accu[%d,%d]= %d\n", i, j+1, *(accu + i + j * Rmax * 2));
+                if (max < *(accu + i + j * Rmax * 2)){
+                    max = *(accu + i + j * Rmax * 2);
+                    thetaMax = j+1;
+                }
+            }
+
+
+        }
+    }
+
+
+
+    printf("angle: %d, at value: %d\n", thetaMax, max);
+
+    // A positive angle rotate to the left
+    thetaMax = thetaMax % 90;
+    if (thetaMax >= 45)
+        thetaMax = 90 - thetaMax;
+    else
+        thetaMax = -thetaMax;
+
+    return thetaMax;
+}
+
+
+
+
+void Straighten(BMP* bmp, BMP* st_bmp){
     BMP edge_bmp;
     CopyBMP(bmp, &edge_bmp);
     EdgeDetect(bmp, &edge_bmp, &(EdgedDetectMatrix[0][0]));
@@ -396,40 +440,11 @@ void Straighten(BMP* bmp,BMP* st_bmp){
 
 
 
+    int angle = GetAngleFromAccu(bmp, &accu, Rmax);
+    printf("real angle: %d\n", angle);
 
-    int thetaMax = 0;
-    int max = 0;
-    int threshold = 3/5;
-    if (bmp->imageHeader.width < bmp->imageHeader.height)
-        threshold *= bmp->imageHeader.height;
-    else
-        threshold *= bmp->imageHeader.width;
-
-    // Loop through all accumulator value
-    for (int i = 0; i < Rmax*2; i++) {
-        for (int j = 0; j < 180; j++) {
-            if(*(accu + i + j * Rmax * 2) > threshold){
-
-                printf("accu[%d,%d]= %d\n", i, j+1, *(accu + i + j * Rmax * 2));
-                if (max < *(accu + i + j * Rmax * 2)){
-                    max = *(accu + i + j * Rmax * 2);
-                    thetaMax = j+1;
-                }
-            }
-
-
-        }
-    }
-
-    printf("angle: %d, at value: %d\n", thetaMax, max);
-
-
-
-
-    BMP rotate;
-    CopyBMPWithEmptyPixels(bmp, &rotate);
-    Rotate(bmp, &rotate, 20);
-    SaveBMP(&rotate, "Rotate.bmp");
+    CopyBMPWithEmptyPixels(bmp, st_bmp);
+    Rotate(bmp, st_bmp, -angle);
 
 }
 
