@@ -42,7 +42,8 @@ void makeText(struct Tree *tree, int *array, char *text, int *ind, char *separat
     }
     else
     {   /*#################################################################################################################################*/
-        text[*ind] = iachar(resizecar(tree, array, width));/* METTRE LA BONNE FONCTION*/
+        text[*ind] = 'h';
+        //iachar(resizecar(tree, array, width));/* METTRE LA BONNE FONCTION*/
         /*#################################################################################################################################*/
         *ind+=1;
         if (tree->sibling != NULL)
@@ -56,7 +57,7 @@ void makeText(struct Tree *tree, int *array, char *text, int *ind, char *separat
     
 }
 /* effectue l'interpretation du texte*/
-void launch(char *file)
+char* launch(char *file)
 {
     /*Get bmp file, convert to BMP struct*/
     BMP *bmp = (BMP*)malloc(sizeof(BMP));
@@ -93,16 +94,24 @@ void launch(char *file)
     nombrechar = makeTree(tree,width, array);
 
     /*Build char text*/
-    char text[nombrechar];
+    char *text = malloc(nombrechar*sizeof(char));
+    if (text == NULL)
+    {
+        printf("not enough space\n");
+    }
+    
     char separators[2] = {'\n', ' '};
     int ind =0;
     makeText(tree, array, text, &ind, separators, 0, width);
-    
+    return text;
     /*SaveBMP(&binary_bmp, "output.bmp");*/
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     /*Launch créé le texte*/
-    launch(*(argv+1));
+    char *text = launch("ocrBTM1.bmp");
+    printf("%s", text);
+    free(text);
+    return 0;
 }
