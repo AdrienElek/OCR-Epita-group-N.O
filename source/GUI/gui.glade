@@ -36,9 +36,9 @@
     <property name="can-focus">False</property>
     <property name="title" translatable="yes">OCR</property>
     <property name="window-position">center</property>
-    <property name="default-width">700</property>
-    <property name="default-height">500</property>
-    <property name="icon">img/icon.png</property>
+    <property name="default-width">900</property>
+    <property name="default-height">550</property>
+    <property name="icon">img\icon.png</property>
     <property name="gravity">center</property>
     <signal name="destroy" handler="destroy" swapped="no"/>
     <child>
@@ -326,7 +326,7 @@
                           <object class="GtkImage" id="image_filename">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="pixbuf">img/logo.png</property>
+                            <property name="pixbuf">img\logo.png</property>
                           </object>
                         </child>
                       </object>
@@ -392,10 +392,9 @@
                   <object class="GtkLabel" id="file_path">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
+                    <property name="double-buffered">False</property>
                     <property name="halign">start</property>
                     <property name="margin-left">4</property>
-                    <property name="hexpand">False</property>
-                    <property name="xpad">4</property>
                     <property name="wrap">True</property>
                   </object>
                   <packing>
@@ -578,8 +577,9 @@
                           <object class="GtkLabel" id="text_path">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
+                            <property name="double-buffered">False</property>
                             <property name="halign">start</property>
-                            <property name="xpad">4</property>
+                            <property name="margin-left">4</property>
                             <property name="wrap">True</property>
                           </object>
                           <packing>

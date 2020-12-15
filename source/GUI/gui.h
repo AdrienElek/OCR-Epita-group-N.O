@@ -4,11 +4,20 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "../sanitizer_ocr/sanitizer.h"
+#include "../sanitizer_ocr/loader.h"
+#include "../Segmentation/segmentation.h"
 
 char *filename = "";
 char *text;
 gchar *save_filename = "";
 GtkBuilder *builder;
+
+void convertbmp_int(BMP *bmp, int *array);
+void makeText(struct Tree *tree, int *array, char *text, int *ind, char *separators, int level, int width);
+char* launch(char *file);
 
 void ocr_start(GtkButton *button, GtkBuilder *builder);
 
@@ -32,6 +41,6 @@ void zoom_image(GtkButton *button, GtkBuilder *builder);
 
 void open_file(GtkButton *button, GtkBuilder *builder);
 
-int main(int argc, char *argv[]);
+int init_GUI(int argc, char *argv[]);
 
 #endif
