@@ -210,6 +210,7 @@ void SaveBMP(BMP *bmp, char* const filename){
     // Writing in the <filename> file
     fwrite(arr, sizeof(unsigned char), bmp->fileHeader.file_size, fptr);
     fclose(fptr);
+    free(arr);
 }
 
 

@@ -91,7 +91,9 @@ Uint DenoisingFilter(BMP* bmp, int i, int j, int filter_size){
         }
     }
 
-    return *(median_list + lenL/2);
+    Uint ret = *(median_list + lenL/2);
+    free(median_list);
+    return ret;
 }
 
 
@@ -223,6 +225,7 @@ unsigned char GetOtsuTH(BMP* gs_bmp){
     }
 
     printf("OtsuTH: %d\n", varIC_index);
+    free(proba);
     return varIC_index;
 }
 
