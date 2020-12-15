@@ -1,16 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-struct Tree
-{
-    int oriX, oriY, destX, destY;
-    struct Tree *child;
-    struct Tree *sibling;
-};
+#include "segmentation.h"
 
 struct Tree* newTree(int orix, int oriy, int destx, int desty)
 {
     struct Tree *tree = (struct Tree*)malloc(sizeof (struct Tree));
+    if (tree == NULL)
+    {
+        printf("\nEspace memoire insuffisant\n");
+    }
+    
     tree->oriX = orix;
     tree->oriY = oriy;
     tree->destX = destx;
@@ -18,34 +17,42 @@ struct Tree* newTree(int orix, int oriy, int destx, int desty)
 
     tree->child = NULL;
     tree->sibling = NULL;
+    
     return(tree);
     
 }
 
+
 void historygramX(int *histo, int *array, int lenarray, struct Tree *G)
 {
+    int count =0;
     for (int i = G->oriY; i < G->destY; i++)
     {
-        histo[i]=0;
+        histo[count] = 0;
         for (int j = G->oriX; j < G->destX; j++)
         {
-            histo[i] += array[i*lenarray + j];
+            histo[count] += array[i*lenarray + j];
+            
         }
+        count+=1;
     }
 }
 
 void historygramY(int *histo, int *array, int lenarray, struct Tree *G)
 {
-
+    int count =0;
     for (int i = G->oriX; i < G->destX; i++)
     {
-        histo[i]=0;
+        histo[count]=0;
 
         for (int j = G->oriY; j < G->destY; j++)
         {
-            histo[i] += array[i + j*lenarray];
+            histo[count] += array[i + j*lenarray];
         }
+        
+        count+=1;
     }  
+
 }
 
 /* Cherche la taille d'espace moyenne, permet la séparation des mots  */
@@ -53,30 +60,38 @@ int spacethreshold(int *histo, int len)
 {
     int count =0;
     int countsize =0;
-    int isNotLine = 1;
-    /* Permet d'ignorer les émargements et les fin de ligne blanches !!  */
+    int isLine = 1;
+    /* Permet d'ignorer les fin de ligne blanches !!  */
     int intermediaire = 0;
+    int i = 0;
+
+    while ( i<len && histo[i] == 0)
+    {
+        i+=1;
+    }
     
-    for (int i = 0; i < len; i++)
+    for (; i < len; i++)
     {
         /* Count number of spaces  */
-        if (histo[i]==0 && isNotLine != 1 )
+        if (histo[i]==0 && isLine == 1 )
         {
-            isNotLine =1;
+            isLine =0;
+            
+        }
+        else if (histo[i]>0 && isLine == 0)
+        {
+            countsize+=intermediaire;
+            intermediaire =0;
+            isLine = 1;
             count+=1;
         }
-        else if (histo[i]>0 && isNotLine == 1)
-        {
-            count+=intermediaire;
-            intermediaire =0;
-            isNotLine = 0;
-        }
         /* count total size of space  */
-        if (isNotLine == 1)
+        if (isLine == 0)
         {
             intermediaire+=1;
         }
     }
+
     if(count == 0)
     {
         return count;
@@ -89,7 +104,9 @@ struct Tree* __car(struct Tree* G, int *histo, int *ind, int lenx)
 {
     int out =0;
     int __oriX =0;
-    while (*ind<lenx)
+    int __destX =0;
+
+    while (*ind<lenx && out<2)
     {
         if (out == 0 && histo[*ind]>0)
         {
@@ -99,111 +116,131 @@ struct Tree* __car(struct Tree* G, int *histo, int *ind, int lenx)
         else if (out ==1 && histo[*ind]==0)
         {
             out =2;
+            __destX = G->oriX+*ind;
         }
         *ind+=1;
         
     }
     if (out == 1 && *ind == lenx)
     {
+        
+        __destX = G->destX;
         out =2;
+        
     }
+
     if (out == 2)
     {
-        return newTree(__oriX, G->oriY, G->oriX+*ind, G->destY);
+        return newTree(__oriX, G->oriY, __destX, G->destY);
     }
     return NULL;
 }
 
-void car(struct Tree* G, int *array, int maxleny)
+int car(struct Tree* G, int *array, int maxleny)
 {
+
+    int numberchar =0;
     int lenx = (G->destX - G->oriX);
 
-    int *histo = malloc(lenx * sizeof(int));
-    historygramY(histo, array, maxleny, G);
-    int ind =0;
+    int histor[lenx];
+    
+    historygramY(histor, array, maxleny, G);
 
-    G->child = __car(G, histo, &ind, lenx);
+
+    int ind =0;
+    G->child = __car(G, histor, &ind, lenx);
     struct Tree *g = G->child;
 
-    while (ind<lenx)
+    while (ind<lenx && g!=NULL)
     {
-        g->sibling = __car(G, histo, &ind, lenx);
+        numberchar+=1;
+        g->sibling = __car(G, histor, &ind, lenx);
         g = g->sibling;
+        
     }
-    free(histo);
+    if (g != NULL)
+    {
+        numberchar+=1;
+        
+    }
+    return numberchar;
 }
 
 /*séparation des mots*/
-struct Tree* __word(struct Tree* G, int *histo, int *ind, int lenx, int threshold )
+struct Tree* __word(struct Tree* G, int *histo, int *indw, int lenx, int threshold )
 {
+
     int count = 0;
     int out =0;
     int __oriX =0;
-    while (*ind<lenx)
+    int __destX = 0;
+    while (*indw<lenx && out<2)
     {
-        if (out == 0 && histo[*ind]>0)
+        if (out == 0 && histo[*indw]>0)
         {
             out =1;
-            __oriX = G->oriX+*ind;
+            __oriX = G->oriX+*indw;
         }
-        else if (out ==1 && histo[*ind]==0)
+        else if (out ==1 && histo[*indw]==0)
         {
             count+=1;
             if (count>threshold)
             {
                 out =2;
+                __destX = G->oriX+*indw - threshold;
             }  
         }
         else
         {
             count =0;
         }
-        *ind+=1;
+        *indw+=1;
         
     }
-    if (out == 1 && *ind == lenx)
+    if (out == 1 && *indw == lenx)
     {
         out =2;
+        __destX = G->destX;
     }
     if (out == 2)
     {
-        return newTree(__oriX, G->oriY, G->oriX+*ind, G->destY);
+        return newTree(__oriX, G->oriY, __destX, G->destY);
     }
     return NULL;
-    
-    
-    
-
 }
 
-void word(struct Tree *G, int *array, int maxleny)
+int word(struct Tree *G, int *array, int maxleny)
 {
+    int numberchar =0;
     int lenx = (G->destX - G->oriX);
-
-    int *histo = malloc(lenx * sizeof(int));
+    
+    int histo[lenx];
     historygramY(histo, array, maxleny, G);
-    int ind =0;
 
+    int indw =0;
     int threshold = spacethreshold(histo, lenx);
-
-    G->child = __word(G, histo, &ind, lenx, threshold);
+    G->child = __word(G, histo, &indw, lenx, threshold);
     struct Tree *g = G->child;
-
-    while (ind<lenx)
-    {
-        g->sibling = __word(G, histo, &ind, lenx, threshold);
-        car(g, array, maxleny);
+    
+    while (indw<lenx && g!=NULL)
+    {   
+        numberchar+= car(g, array, maxleny)+1;
+        g->sibling = __word(G, histo, &indw, lenx, threshold);
         g = g->sibling;
     }
+    
     if (g!=NULL)
     {
-        car(g, array, maxleny);
+        numberchar += car(g, array, maxleny)+1;
+
     }
-    free(histo);
+    
+    return numberchar;
     
 }
 
 
+/**/
 /*séparation des lignes*/
 struct Tree* __lines(struct Tree *G, int *histo, int *ind, int leny)
 {
@@ -223,6 +260,8 @@ struct Tree* __lines(struct Tree *G, int *histo, int *ind, int leny)
         }
         *ind+=1;
     }
+
+
     if (*ind==leny && out==1)
     {
         out =2;
@@ -230,53 +269,52 @@ struct Tree* __lines(struct Tree *G, int *histo, int *ind, int leny)
 
     if (out == 2)
     {   
+        *ind -=1;
         return newTree(G->oriX, __oriY, G->destX, G->oriY+*ind);
     }
     else
     {
         return NULL;
     }
-    
-    
-    
-    
-
-
 }
 
-void lines(struct Tree *G, int *array, int maxleny)
+int lines(struct Tree *G, int *array, int maxlenX)
 {
+    int numberchar = 0;
     /*Creation de l'histogramme*/
     int leny =(G->destY - G->oriY);
 
-    int *histo = malloc(leny * sizeof(int));
-    historygramX(histo, array, maxleny, G);
-    int ind =0;
+    int histo[leny];
+    historygramX(histo, array, maxlenX, G);
 
+    int ind =0;
     G->child = __lines(G, histo, &ind, leny);
     struct Tree *g = G->child;
     
-    while (ind<leny)
+    while (ind<leny && g!=NULL)
     {
+ 
+        numberchar += word(g, array, maxlenX)+1;
         g->sibling = __lines(G, histo, &ind, leny);
-        word(g, array, maxleny);
         g = g->sibling;
+        
     }
     if (g!=NULL)
     {
-        word(g, array, maxleny);
+
+        numberchar+= word(g, array, maxlenX)+1;
     }
-    free(histo);
+    
+    return numberchar;
     
 }
 
 
 /*segmentation ligne->mots->caractères, retour de l'arbre OwO */
-struct Tree* makeTree(int lenx, int leny, int *array)
+int makeTree(struct Tree *G, int lenx,  int *array)
 {
-    struct Tree*G = newTree(0,0,lenx, leny);
-    lines(G, array, lenx);
-    return G;
+    int nbchar = lines(G, array, lenx);
+    return nbchar;
 }
 
 /* renvoi la taille du coté le plus grand de G, sert de référence pour les rapports de longueurs du makechar()*/
@@ -284,7 +322,7 @@ struct Tree* makeTree(int lenx, int leny, int *array)
 int getsize(struct Tree *G, int *array, int lenarray)
 {   
     int leny = (G->destY - G->oriY);
-    int *histo = malloc(leny * sizeof(int));
+    int histo[leny];
     historygramX(histo, array, lenarray, G);
     int begin = 0;
     int __oriy = 0;

@@ -1,10 +1,15 @@
-#define SEGMENTATION_H
-#ifndef SEGMENTATION_H
 
+#include <stdio.h>
+#include <stdlib.h>
 
 /*struct bintree*/
 
-struct Tree;
+struct Tree
+{
+    int oriX, oriY, destX, destY;
+    struct Tree *child;
+    struct Tree *sibling;
+};
 
 struct Tree* newTree(int orix, int oriy, int destx, int desty);
 
@@ -20,19 +25,19 @@ int spacethreshold(int *histo, int len);
 
 struct Tree* __car(struct Tree* G, int *histo, int *ind, int lenx);
 
-void car(struct Tree* G, int *array, int maxleny);
+int car(struct Tree* G, int *array, int maxleny);
 
 struct Tree* __word(struct Tree* G, int *histo, int *ind, int lenx, int threshold );
 
-void word(struct Tree *G, int *array, int maxleny);
+int word(struct Tree *G, int *array, int maxleny);
 
 struct Tree* __lines(struct Tree *G, int *histo, int *ind, int leny);
 
-void lines(struct Tree *G, int *array, int maxleny);
+int lines(struct Tree *G, int *array, int maxleny);
 
 /*fonction de construction de l'arbre*/
 
-struct Tree* makeTree(int lenx, int leny, int *array);
+int makeTree(struct Tree *G, int lenx, int *array);
 
 /*fonction de resize*/
 
@@ -44,4 +49,3 @@ int* makechar(struct Tree *G, int *array, int lenarray, int l);
 
 int* resizecar(struct Tree *G, int *array, int lenarray);
 
-#endif
