@@ -293,7 +293,6 @@ int lines(struct Tree *G, int *array, int maxlenX)
     
     while (ind<leny && g!=NULL)
     {
- 
         numberchar += word(g, array, maxlenX)+1;
         g->sibling = __lines(G, histo, &ind, leny);
         g = g->sibling;
@@ -303,7 +302,9 @@ int lines(struct Tree *G, int *array, int maxlenX)
     {
 
         numberchar+= word(g, array, maxlenX)+1;
-    }
+    } 
+    
+    
     
     return numberchar;
     
@@ -338,8 +339,8 @@ int getsize(struct Tree *G, int *array, int lenarray)
             G->destY = G->oriY+i;
         }
     }
+    
     G->oriY = __oriy;
-    free(histo);
     if((G->destY - G->oriY)>=(G->destX - G->oriX))
     {
         return (G->destY - G->oriY);
@@ -357,10 +358,10 @@ int* makechar(struct Tree *G, int *array, int lenarray, int l)
     int arrayj;
     for (int i = 0; i < 16; i++)
     {
-        for (int j = 0; i < 16; j++)
+        for (int j = 0; j < 16; j++)
         {
             arrayi = (i*l)/16 + G->oriY;
-            arrayj = (j*l)/16 +G->oriX;
+            arrayj = (j*l)/16 + G->oriX;
             if (arrayi>=G->destY || arrayj>=G->destX)
             {
                 sizedchar[j+i*16] = 0;
