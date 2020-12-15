@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// Author: Adrien Lorge
+
 /*struct bintree*/
 
 struct Tree

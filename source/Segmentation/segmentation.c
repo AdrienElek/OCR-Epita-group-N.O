@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "segmentation.h"
 
+// Author: Adrien Lorge
+
 struct Tree* newTree(int orix, int oriy, int destx, int desty)
 {
     struct Tree *tree = (struct Tree*)malloc(sizeof (struct Tree));
