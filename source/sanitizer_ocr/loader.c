@@ -153,8 +153,6 @@ void BuildFIleArray(BMP *bmp, unsigned char **arr){
 
 
 PIX GetPixel(BMP* bmp, int x, int y){
-    if (x >= bmp->imageHeader.width || y >= bmp->imageHeader.height)
-        printf("GetPixel: Index out of bound\n");
     Uint index = bmp->imageHeader.bits_pp/8 * (x + y * bmp->imageHeader.width);
     PIX pix = {
             .r = bmp->pixels[index],
@@ -166,8 +164,6 @@ PIX GetPixel(BMP* bmp, int x, int y){
 
 
 void SetPixel(BMP* bmp, int x, int y, PIX pix){
-    if (x >= bmp->imageHeader.width || y >= bmp->imageHeader.height)
-        printf("GetPixel: Index out of bound\n");
     Uint index = bmp->imageHeader.bits_pp/8 * (x + y * bmp->imageHeader.width);
     bmp->pixels[index] = pix.r;
     bmp->pixels[index+1] = pix.g;

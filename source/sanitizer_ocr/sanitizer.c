@@ -36,7 +36,7 @@ void Greyscale(BMP* bmp, BMP* gs_bmp){
     CopyBMP(bmp, gs_bmp);
 
     if (VerifyGrayscale(bmp) == 1) {
-        printf("Already Grayscaled !\n");
+        //printf("Already Grayscaled !\n");
         return;
     }
 
@@ -224,7 +224,7 @@ unsigned char GetOtsuTH(BMP* gs_bmp){
         }
     }
 
-    printf("OtsuTH: %d\n", varIC_index);
+    //printf("OtsuTH: %d\n", varIC_index);
     free(proba);
     return varIC_index;
 }
@@ -415,7 +415,7 @@ int GetAngleFromAccu(BMP* bmp, Uint **accumulator, int Rmax){
 
 
 
-    printf("angle: %d, at value: %d\n", thetaMax, max);
+    //printf("angle: %d, at value: %d\n", thetaMax, max);
 
     // A positive angle rotate to the left
     thetaMax = thetaMax % 90;
@@ -444,7 +444,7 @@ void Straighten(BMP* bmp, BMP* st_bmp){
 
 
     int angle = GetAngleFromAccu(bmp, &accu, Rmax);
-    printf("real angle: %d\n", angle);
+    //printf("real angle: %d\n", angle);
 
     CopyBMPWithEmptyPixels(bmp, st_bmp);
     Rotate(bmp, st_bmp, -angle);

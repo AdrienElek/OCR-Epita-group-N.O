@@ -25,13 +25,16 @@ void ocr_start(GtkButton *button, GtkBuilder *builder)
   
   /*Launch créé le texte*/
     char * texte = launch(filename);
-    printf("%s", text);
-    free(text);
+    
 
   //Fin de l'OCR (Texte de résultat: text)
   
+  if (texte[0] != '\0'){
   GtkTextBuffer * buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(gtk_builder_get_object(builder, "zone_texte")));
   gtk_text_buffer_set_text(buffer, texte, -1);
+  }
+else{g_print("YESSSS");}
+  free(texte);
   
 }
 
